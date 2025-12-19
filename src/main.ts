@@ -37,12 +37,21 @@ const touchInput = new TouchInput();
 const racingScene = new RacingScene();
 await racingScene.init(courseConfig, environment);
 
-hideLoadingScreen();
-
 let lastFrameTime = 0;
+let gameStarted = false;
+
+hideLoadingScreen();
+showStartScreen();
+
+// Start the render loop (but it won't update game until gameStarted is true)
 requestAnimationFrame(renderFrame);
 
 function renderFrame(time: number): void {
+  if (!gameStarted) {
+    requestAnimationFrame(renderFrame);
+    return;
+  }
+
   if (lastFrameTime !== 0) {
     const timeStep = time - lastFrameTime;
 
@@ -117,6 +126,31 @@ function hideLoadingScreen(): void {
 
   loadingScreenElement.classList.add("faded-out");
   setTimeout(() => loadingScreenElement.classList.add("hidden"), 300);
+}
+
+function showStartScreen(): void {
+  const startScreenElement = document.getElementById(
+    "start-screen",
+  ) as HTMLDivElement;
+  const startButton = document.getElementById("start-button") as HTMLButtonElement;
+
+  if (!startScreenElement || !startButton) {
+    console.error("Start screen elements not found!");
+    gameStarted = true; // Fallback to auto-start if elements missing
+    return;
+  }
+
+  startScreenElement.classList.remove("hidden");
+
+  startButton.addEventListener("click", () => {
+    console.log("Start button clicked!");
+    startScreenElement.classList.add("faded-out");
+    setTimeout(() => {
+      startScreenElement.classList.add("hidden");
+      gameStarted = true;
+      console.log("Game started!");
+    }, 300);
+  });
 }
 
 function onGameTerminated(aborted = false): void {
